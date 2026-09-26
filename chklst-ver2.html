@@ -162,12 +162,21 @@
         left: 20px;
         transform: rotate(-20deg);
       }
+      .stamp-back {
+        color: #6c757d;
+        border: 4px solid #6c757d;
+        padding: 5px 15px;
+        border-radius: 10px;
+        top: 40px;
+        left: 20px;
+        transform: rotate(-20deg);
+      }
 
       /* 하단 액션 버튼 */
       .action-buttons {
         display: flex;
         justify-content: center;
-        gap: 30px;
+        gap: 50px; /* 버튼 2개로 줄어들었으므로 간격 증가 */
         margin-top: 5px;
       }
       .action-btn {
@@ -333,7 +342,7 @@
         </div>
 
         <a
-          href="/bas/"
+          href="/chem/"
           class="btn btn-light rounded-pill px-2 py-1 text-dark fw-bold shadow-sm"
           style="font-size: 12px; flex-shrink: 0"
         >
@@ -392,28 +401,9 @@
     <div class="card-container" id="card-container"></div>
 
     <!-- 컨트롤 버튼 -->
-    <div
-      class="action-buttons"
-      id="control-panel"
-      style="align-items: center; gap: 20px"
-    >
+    <div class="action-buttons" id="control-panel" style="align-items: center">
       <button class="action-btn btn-like" onclick="handleAction('no')">
         🟢
-      </button>
-      <button
-        class="action-btn btn-back"
-        id="btn-back"
-        onclick="goBack()"
-        style="
-          width: 55px;
-          height: 55px;
-          font-size: 24px;
-          border: 2px solid #6c757d;
-          background-color: #fff;
-          color: #6c757d;
-        "
-      >
-        ↩️
       </button>
       <button class="action-btn btn-nope" onclick="handleAction('yes')">
         🔴
@@ -1011,29 +1001,19 @@
         card.innerHTML = `
           <div class="stamp stamp-like" id="stamp-like">이상없음</div>
           <div class="stamp stamp-nope" id="stamp-nope">이상있음</div>
+          <div class="stamp stamp-back" id="stamp-back">이전</div>
           <div class="card-cat">${item.cat}</div>
           <div class="card-title-text">${item.title}</div>
           <div class="card-desc">${item.desc}</div>
           ${detailsHtml}
           ${absorberHtml}
-          <div class="mt-4 small text-muted">👈 스와이프 (이상 없음) | (이상 있음) 👉</div>
+          <div class="mt-4 small text-muted">👈 다음 항목 (이상없음) | 이전 항목 👉</div>
         `
 
         cardContainer.innerHTML = ''
         cardContainer.appendChild(card)
         updateProgress()
         setupSwipeEvents(card)
-
-        const backBtn = document.getElementById('btn-back')
-        if (backBtn) {
-          if (index === 0) {
-            backBtn.style.opacity = '0.3'
-            backBtn.disabled = true
-          } else {
-            backBtn.style.opacity = '1'
-            backBtn.disabled = false
-          }
-        }
       }
 
       function goBack() {
@@ -1066,7 +1046,6 @@
         )
           return
         while (currentIndex < items.length) {
-          // 일괄처리시에도 기존에 작성해둔 메모가 있다면 덮어쓰지 않고 보존합니다.
           let existingMemo =
             (results[currentIndex] && results[currentIndex].memo) || ''
           results[currentIndex] = {
@@ -1183,7 +1162,6 @@
           card.style.transform = 'translateX(-150%) rotate(-15deg)'
           handleCombo()
 
-          // [핵심 변경사항] 이상 없음(no)을 선택해도 기존에 작성해둔 메모는 지우지 않고 유지시킵니다.
           let existingMemo =
             (results[currentIndex] && results[currentIndex].memo) || ''
           results[currentIndex] = {
@@ -1214,7 +1192,6 @@
               '발견된 이상한 점을 기재해주세요...'
             memoInput.setAttribute('placeholder', placeholderTxt)
 
-            // [핵심 변경사항] 상태가 yes이든 no이든, 취소(null) 상태이든 무조건 해당 항목에 입력된 메모가 있다면 가져옵니다.
             let existingMemo =
               (results[currentIndex] && results[currentIndex].memo) || ''
             memoInput.value = existingMemo
@@ -1250,11 +1227,9 @@
         }, 150)
       }
 
-      // [핵심 변경사항] 취소 시 메모는 남기고 상태만 null 로 변경
       function cancelYes() {
         memoInput.blur()
         setTimeout(() => {
-          // 작성한 메모 텍스트를 보존하고, 검사 상태만 무효화(null) 합니다.
           const currentMemo = memoInput.value
           results[currentIndex] = {
             item: items[currentIndex],
@@ -1279,7 +1254,7 @@
           currentX = 0,
           isDragging = false
         const likeStamp = card.querySelector('#stamp-like')
-        const nopeStamp = card.querySelector('#stamp-nope')
+        const backStamp = card.querySelector('#stamp-back')
 
         card.addEventListener('touchstart', (e) => {
           startX = e.touches[0].clientX
@@ -1290,13 +1265,19 @@
         card.addEventListener('touchmove', (e) => {
           if (!isDragging) return
           currentX = e.touches[0].clientX - startX
+
+          // 첫 카드에서는 이전(오른쪽) 스와이프 차단
+          if (currentIndex === 0 && currentX > 0) {
+            currentX = 0
+          }
+
           card.style.transform = `translateX(${currentX}px) rotate(${currentX * 0.05}deg)`
 
           if (currentX < 0) {
             likeStamp.style.opacity = Math.min(Math.abs(currentX) / 100, 1)
-            nopeStamp.style.opacity = 0
-          } else {
-            nopeStamp.style.opacity = Math.min(currentX / 100, 1)
+            if (backStamp) backStamp.style.opacity = 0
+          } else if (currentX > 0) {
+            if (backStamp) backStamp.style.opacity = Math.min(currentX / 100, 1)
             likeStamp.style.opacity = 0
           }
         })
@@ -1307,12 +1288,16 @@
 
           if (currentX < -100) {
             handleAction('no')
-          } else if (currentX > 100) {
-            handleAction('yes')
+          } else if (currentX > 100 && currentIndex > 0) {
+            if (backStamp) backStamp.style.opacity = '1'
+            card.style.transform = 'translateX(150%) rotate(15deg)'
+            setTimeout(() => {
+              goBack()
+            }, 200)
           } else {
             card.style.transform = 'translateX(0px) rotate(0deg)'
             likeStamp.style.opacity = 0
-            nopeStamp.style.opacity = 0
+            if (backStamp) backStamp.style.opacity = 0
           }
           currentX = 0
         })
