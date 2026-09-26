@@ -117,7 +117,26 @@
         font-weight: 900;
         color: #17324d;
         margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px; /* 번호와 텍스트 사이 간격 */
       }
+
+      /* 동그라미 번호 스타일 */
+      .card-index-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background-color: #e8f0ff;
+        color: #2d6cdf;
+        font-size: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
       .card-desc {
         font-size: 14px;
         color: #6c757d;
@@ -176,7 +195,7 @@
       .action-buttons {
         display: flex;
         justify-content: center;
-        gap: 50px; /* 버튼 2개로 줄어들었으므로 간격 증가 */
+        gap: 50px;
         margin-top: 5px;
       }
       .action-btn {
@@ -1004,7 +1023,10 @@
           <div class="stamp stamp-nope" id="stamp-nope">이상있음</div>
           <div class="stamp stamp-back" id="stamp-back">이전</div>
           <div class="card-cat">${item.cat}</div>
-          <div class="card-title-text">${item.title}</div>
+          <div class="card-title-text">
+            <span class="card-index-badge">${index + 1}</span>
+            ${item.title}
+          </div>
           <div class="card-desc">${item.desc}</div>
           ${detailsHtml}
           ${absorberHtml}
@@ -1135,7 +1157,7 @@
         if (now - lastActionTime < 3000) {
           comboCount++
           if (comboCount > 1) {
-            comboEl.innerText = `제대로 하는거 맞죠?`
+            comboEl.innerText = `천천히~!`
             comboEl.classList.add('show-combo')
             setTimeout(() => comboEl.classList.remove('show-combo'), 800)
           }
