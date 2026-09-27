@@ -414,7 +414,7 @@
     </header>
 
     <!-- 콤보 UI -->
-    <div id="combo-text">천천히~!</div>
+    <div id="combo-text">제대로 하는거 맞죠?</div>
 
     <!-- 카드 영역 -->
     <div class="card-container" id="card-container"></div>
@@ -1157,7 +1157,7 @@
         if (now - lastActionTime < 3000) {
           comboCount++
           if (comboCount > 1) {
-            comboEl.innerText = `천천히~!`
+            comboEl.innerText = `제대로 하는거 맞죠?`
             comboEl.classList.add('show-combo')
             setTimeout(() => comboEl.classList.remove('show-combo'), 800)
           }
