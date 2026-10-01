@@ -2,48 +2,86 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 1. 핀치줌 허용 안함 -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>업무일지</title>
     <!-- Bootstrap 5 CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <!-- html2pdf.js for PDF export -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
       body {
         background-color: #f8f9fa;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
       }
       .journal-container {
         background-color: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        min-height: 100vh;
       }
-      .section-title {
+
+      /* 섹션 타이틀 및 컨트롤 버튼 레이아웃 */
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         background-color: #e9ecef;
         padding: 5px 10px;
-        font-weight: bold;
         border-left: 4px solid #0d6efd;
         margin-top: 15px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        font-weight: bold;
       }
+
       .table th,
       .table td {
         vertical-align: middle;
-        padding: 0.3rem;
+        padding: 0.25rem;
       }
-      .form-control,
-      .form-select {
-        font-size: 0.9rem;
-        padding: 0.25rem 0.5rem;
+      .form-control {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.4rem;
       }
-      /* PDF 출력 시 여백 및 스타일 조정 */
-      #printableArea {
-        padding: 10px;
+
+      /* 7. 아이폰 스타일 체크박스 UI (iOS Toggle Switch) */
+      .ios-switch {
+        appearance: none;
+        width: 40px;
+        height: 22px;
+        background: #e5e5ea;
+        border-radius: 22px;
+        position: relative;
+        cursor: pointer;
+        outline: none;
+        transition: background 0.3s;
+        margin: 0 auto;
+        display: block;
       }
+      .ios-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s;
+      }
+      .ios-switch:checked {
+        background: #34c759;
+      }
+      .ios-switch:checked::after {
+        transform: translateX(18px);
+      }
+
       .fixed-bottom-bar {
         background-color: white;
         border-top: 1px solid #dee2e6;
@@ -51,33 +89,89 @@
         z-index: 1030;
       }
       .mb-spacer {
-        margin-bottom: 80px;
+        margin-bottom: 70px;
+      }
+
+      /* PDF 인쇄 시 여백 초기화 및 버튼 숨김 클래스 */
+      .pdf-mode {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .pdf-mode .no-print {
+        display: none !important;
+      }
+      .pdf-mode .form-control {
+        border: none;
+        background: transparent;
+        padding: 0;
+        text-align: center;
+      }
+
+      /* 4. 분류 컬럼 폭 (2글자용) */
+      .col-type {
+        width: 50px;
+        text-align: center;
+      }
+
+      /* 2. 날짜 입력박스 폭 조절 */
+      .col-date {
+        width: 130px;
       }
     </style>
   </head>
   <body>
-    <div class="container mt-3 mb-spacer" id="printableArea">
-      <div class="journal-container">
-        <h3 class="text-center fw-bold mb-3 border-bottom pb-2">
-          계획하라! 실천하라! 지속하라!
-        </h3>
+    <div class="journal-container mb-spacer" id="printableArea">
+      <!-- 8. Home 링크 추가 -->
+      <div
+        class="d-flex justify-content-between align-items-center mb-2 no-print"
+      >
+        <a href="#" class="btn btn-sm btn-outline-secondary">🏠 Home</a>
+      </div>
 
-        <!-- 기본 정보 -->
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <label class="form-label mb-1">Day (날짜)</label>
-            <input type="date" class="form-control ls-save" id="dateInput" />
-          </div>
-          <div class="col-6">
-            <label class="form-label mb-1">주(Week) / 주제</label>
-            <input type="text" class="form-control ls-save" id="weekTopic" />
+      <h4 class="text-center fw-bold mb-3 border-bottom pb-2">
+        계획하라! 실천하라! 지속하라!
+      </h4>
+
+      <!-- 기본 정보 -->
+      <div class="d-flex gap-2 mb-3 align-items-end">
+        <div class="col-date">
+          <label class="form-label mb-1 fw-bold text-nowrap">Day(날짜)</label>
+          <input type="date" class="form-control ls-save" id="dateInput" />
+        </div>
+        <!-- 3. 주(Week)/주제 -> 오늘의 한줄, 폭 나머지 다 할당 -->
+        <div class="flex-grow-1">
+          <label class="form-label mb-1 fw-bold">오늘의 한줄</label>
+          <input
+            type="text"
+            class="form-control ls-save"
+            id="todayLine"
+            value="Day-"
+          />
+        </div>
+      </div>
+
+      <!-- Team Box Meeting -->
+      <div id="tbmSection">
+        <div class="section-header">
+          <span>Team Box Meeting - 업무일정</span>
+          <!-- 6. 항목 추가/삭제 버튼 -->
+          <div class="no-print">
+            <button
+              class="btn btn-sm btn-secondary py-0 px-2"
+              onclick="addRow('tbmBody', 'tbm')"
+            >
+              +
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary py-0 px-2"
+              onclick="removeRow('tbmBody')"
+            >
+              -
+            </button>
           </div>
         </div>
-
-        <!-- Team Box Meeting -->
-        <div class="section-title">Team Box Meeting - 업무일정</div>
         <div class="table-responsive">
-          <table class="table table-bordered text-center align-middle">
+          <table class="table table-bordered text-center align-middle mb-0">
             <thead class="table-light">
               <tr>
                 <th>항목</th>
@@ -85,405 +179,285 @@
                 <th style="width: 50px">실행</th>
               </tr>
             </thead>
-            <tbody>
-              <!-- 3개 행 생성 -->
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="tbmItem1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk1_1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk1_2"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="tbmItem2"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk2_1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk2_2"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="tbmItem3"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk3_1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input ls-save"
-                    id="tbmChk3_2"
-                  />
-                </td>
-              </tr>
+            <tbody id="tbmBody">
+              <!-- 스크립트로 기본 1행 생성 -->
             </tbody>
           </table>
         </div>
+      </div>
 
-        <!-- 샌디/민원/기타 -->
-        <div class="section-title">③ 샌디 / 민원 / 기타</div>
+      <!-- 샌디/민원/기타 -->
+      <div id="sandySection">
+        <div class="section-header">
+          <span>③ 샌디 / 민원 / 기타</span>
+          <div class="no-print">
+            <button
+              class="btn btn-sm btn-secondary py-0 px-2"
+              onclick="addRow('sandyBody', 'sandy')"
+            >
+              +
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary py-0 px-2"
+              onclick="removeRow('sandyBody')"
+            >
+              -
+            </button>
+          </div>
+        </div>
         <div class="table-responsive">
-          <table class="table table-bordered text-center">
+          <table class="table table-bordered text-center mb-0">
             <thead class="table-light">
               <tr>
-                <th style="width: 25%">위치</th>
-                <th style="width: 25%">제목</th>
+                <!-- 4. 제목 삭제, 위치 -> 요청위치 -->
+                <th style="width: 35%">요청위치</th>
                 <th>요청내용</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyLoc1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyTitle1"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyReq1"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyLoc2"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyTitle2"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    class="form-control ls-save"
-                    id="sandyReq2"
-                  />
-                </td>
-              </tr>
+            <tbody id="sandyBody">
+              <!-- 스크립트로 기본 1행 생성 -->
             </tbody>
           </table>
         </div>
+      </div>
 
-        <!-- 시간별 업무내용 -->
-        <div class="section-title">시간별 업무내용</div>
+      <!-- 시간별 업무내용 -->
+      <div id="hourlySection">
+        <div class="section-header">
+          <span>시간별 업무내용</span>
+          <div class="no-print">
+            <button
+              class="btn btn-sm btn-secondary py-0 px-2"
+              onclick="addRow('hourlyBody', 'hourly')"
+            >
+              +
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary py-0 px-2"
+              onclick="removeRow('hourlyBody')"
+            >
+              -
+            </button>
+          </div>
+        </div>
         <div class="table-responsive">
-          <table class="table table-bordered text-center">
+          <table class="table table-bordered text-center mb-0">
             <thead class="table-light">
               <tr>
-                <th style="width: 20%">시간</th>
-                <th style="width: 30%">제목</th>
+                <th style="width: 25%">시간</th>
+                <!-- 5. 제목 -> 분류 -->
+                <th class="col-type">분류</th>
                 <th>업무내용 / 참석자</th>
               </tr>
             </thead>
-            <tbody id="timelineBody">
-              <!-- 스크립트로 5개 행 자동 생성 -->
+            <tbody id="hourlyBody">
+              <!-- 스크립트로 기본 1행 생성 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 하단: 매일점검목록 & 월간 특별일정 -->
+      <div class="row g-2 mt-2">
+        <div class="col-md-6 col-12">
+          <div class="section-header" style="margin-top: 0">
+            <span>매일 점검 목록</span>
+          </div>
+          <table class="table table-bordered table-sm text-center mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="text-start">점검항목</th>
+                <th style="width: 50px">담당</th>
+                <th style="width: 50px">실행</th>
+              </tr>
+            </thead>
+            <tbody id="dailyBody">
+              <!-- 스크립트로 생성 -->
             </tbody>
           </table>
         </div>
 
-        <!-- 하단: 매일점검목록 & 월간 특별일정 -->
-        <div class="row g-3">
-          <!-- 매일점검목록 -->
-          <div class="col-md-6 col-12">
-            <div class="section-title">매일 점검 목록</div>
-            <table
-              class="table table-bordered table-sm text-center"
-              style="font-size: 0.8rem"
-            >
-              <thead class="table-light">
-                <tr>
-                  <th class="text-start">점검항목</th>
-                  <th style="width: 40px">담당</th>
-                  <th style="width: 40px">실행</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-start">1. 흡착탑 정압설정(오전/오후)</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily1_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily1_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">2. 오전 기계설비점검</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily2_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily2_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">3. 오후 기계설비 점검</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily3_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily3_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">4. 온도체크(월수금 2시)</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily4_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily4_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">5. PM3시 - 흡수식냉동기 엣지</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily5_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily5_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">6. 냉각탑 수처리제 투입(화요일)</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily6_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily6_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">7. 마이크로필터 교체(15일마다)</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily7_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily7_2"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-start">8. 팬, 모터 구리스 주입(15일마다)</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily8_1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="form-check-input ls-save"
-                      id="chkDaily8_2"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="col-md-6 col-12">
+          <div class="section-header" style="margin-top: 0">
+            <span>월간 특별일정</span>
           </div>
-
-          <!-- 월간 특별일정 -->
-          <div class="col-md-6 col-12">
-            <div class="section-title">월간 특별일정</div>
-            <div
-              class="p-2 border rounded"
-              style="font-size: 0.85rem; background-color: #fcfcfc"
-            >
-              <strong>매월초 - 교번작업</strong><br /><br />
-              <strong>1, 4, 7, 10월</strong>
-              <ul>
-                <li>지열EHP 실외기 스트레이너 청소</li>
-                <li>실험동물실 필터교체 (1,7월 프레임까지)</li>
-              </ul>
-              <strong>2, 5, 8, 11월</strong>
-              <ul>
-                <li>프리+미디엄 필터교체</li>
-              </ul>
-            </div>
+          <div
+            class="p-2 border rounded"
+            style="font-size: 0.8rem; background-color: #fcfcfc"
+          >
+            <strong>매월초 - 교번작업</strong><br /><br />
+            <strong>1, 4, 7, 10월</strong>
+            <ul class="mb-2">
+              <li>지열EHP 실외기 스트레이너 청소</li>
+              <li>실험동물실 필터교체 (1,7월 프레임까지)</li>
+            </ul>
+            <strong>2, 5, 8, 11월</strong>
+            <ul class="mb-0">
+              <li>프리+미디엄 필터교체</li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 하단 고정 컨트롤 바 -->
-    <div class="fixed-bottom fixed-bottom-bar shadow-lg">
+    <!-- 하단 고정 컨트롤 바 (PDF 출력시 숨김) -->
+    <div class="fixed-bottom fixed-bottom-bar shadow-lg no-print">
       <div class="container d-flex justify-content-between gap-2">
-        <button class="btn btn-primary flex-fill" onclick="saveData()">
+        <button class="btn btn-primary flex-fill fw-bold" onclick="saveData()">
           저장
         </button>
-        <button class="btn btn-danger flex-fill" onclick="clearData()">
-          초기화 (새로고침)
+        <button class="btn btn-danger flex-fill fw-bold" onclick="clearData()">
+          새로고침
         </button>
-        <button class="btn btn-success flex-fill" onclick="exportPDF()">
-          PDF 저장
+        <button class="btn btn-success flex-fill fw-bold" onclick="exportPDF()">
+          PDF
         </button>
       </div>
     </div>
 
     <script>
-      // 시간별 업무내용 5줄 자동 생성
-      const timelineBody = document.getElementById('timelineBody')
-      for (let i = 1; i <= 5; i++) {
-        timelineBody.innerHTML += `
-            <tr>
-                <td><input type="text" class="form-control ls-save" id="time${i}" placeholder="00:00"></td>
-                <td><input type="text" class="form-control ls-save" id="timeTitle${i}"></td>
-                <td><input type="text" class="form-control ls-save" id="timeContent${i}"></td>
-            </tr>
-        `
+      const STORAGE_KEY = 'workJournalData_v2'
+
+      // 매일 점검 목록 텍스트
+      const dailyItems = [
+        '1. 흡착탑 정압설정(오전/오후)',
+        '2. 오전 기계설비점검',
+        '3. 오후 기계설비 점검',
+        '4. 온도체크(월수금 2시)',
+        '5. PM3시-흡수식냉동기 엣지',
+        '6. 냉각탑 수처리제 투입(화요일)',
+        '7. 마이크로필터 교체(15일마다)',
+        '8. 팬, 모터 구리스 주입(15일마다)',
+      ]
+
+      // 각 영역별 Row HTML 템플릿 반환
+      function getRowHtml(type) {
+        if (type === 'tbm') {
+          return `<tr>
+                        <td><input type="text" class="form-control" placeholder="항목 입력"></td>
+                        <td><input type="checkbox" class="ios-switch"></td>
+                        <td><input type="checkbox" class="ios-switch"></td>
+                    </tr>`
+        } else if (type === 'sandy') {
+          return `<tr>
+                        <td><input type="text" class="form-control" placeholder="요청위치"></td>
+                        <td><input type="text" class="form-control" placeholder="요청내용"></td>
+                    </tr>`
+        } else if (type === 'hourly') {
+          return `<tr>
+                        <td><input type="text" class="form-control" placeholder="00:00~00:00"></td>
+                        <td class="col-type"><input type="text" class="form-control text-center" maxlength="2" placeholder="분류"></td>
+                        <td><input type="text" class="form-control" placeholder="업무내용/참석자"></td>
+                    </tr>`
+        }
+        return ''
       }
 
-      // 로컬 스토리지 키
-      const STORAGE_KEY = 'workJournalData'
+      // 6. 행 추가 / 삭제 기능
+      function addRow(tbodyId, type) {
+        const tbody = document.getElementById(tbodyId)
+        tbody.insertAdjacentHTML('beforeend', getRowHtml(type))
+      }
 
-      // 데이터 저장
-      function saveData() {
-        const inputs = document.querySelectorAll('.ls-save')
-        const data = {}
-        inputs.forEach((input) => {
-          if (input.type === 'checkbox') {
-            data[input.id] = input.checked
-          } else {
-            data[input.id] = input.value
-          }
+      function removeRow(tbodyId) {
+        const tbody = document.getElementById(tbodyId)
+        if (tbody.children.length > 1) {
+          // 최소 1줄은 유지
+          tbody.removeChild(tbody.lastElementChild)
+        }
+      }
+
+      // 초기화면 렌더링
+      function initTables() {
+        document.getElementById('tbmBody').innerHTML = getRowHtml('tbm')
+        document.getElementById('sandyBody').innerHTML = getRowHtml('sandy')
+        document.getElementById('hourlyBody').innerHTML = getRowHtml('hourly')
+
+        let dailyHtml = ''
+        dailyItems.forEach((item) => {
+          dailyHtml += `<tr>
+                <td class="text-start">${item}</td>
+                <td><input type="checkbox" class="ios-switch"></td>
+                <td><input type="checkbox" class="ios-switch"></td>
+            </tr>`
         })
+        document.getElementById('dailyBody').innerHTML = dailyHtml
+      }
+
+      // 데이터 수집하여 저장
+      function saveData() {
+        const data = {
+          date: document.getElementById('dateInput').value,
+          todayLine: document.getElementById('todayLine').value,
+          tbm: extractTableData('tbmBody'),
+          sandy: extractTableData('sandyBody'),
+          hourly: extractTableData('hourlyBody'),
+          daily: extractTableData('dailyBody'),
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
         alert('입력된 내용이 기기에 저장되었습니다.')
       }
 
-      // 데이터 불러오기
+      function extractTableData(tbodyId) {
+        const rows = document.getElementById(tbodyId).querySelectorAll('tr')
+        const rowData = []
+        rows.forEach((row) => {
+          const inputs = row.querySelectorAll('input')
+          const values = Array.from(inputs).map((input) =>
+            input.type === 'checkbox' ? input.checked : input.value,
+          )
+          rowData.push(values)
+        })
+        return rowData
+      }
+
+      // 저장된 데이터 불러오기
       function loadData() {
-        const savedData = localStorage.getItem(STORAGE_KEY)
-        if (savedData) {
-          const data = JSON.parse(savedData)
-          for (const key in data) {
-            const input = document.getElementById(key)
-            if (input) {
-              if (input.type === 'checkbox') {
-                input.checked = data[key]
-              } else {
-                input.value = data[key]
-              }
-            }
-          }
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (!saved) return
+
+        try {
+          const data = JSON.parse(saved)
+          if (data.date) document.getElementById('dateInput').value = data.date
+          if (data.todayLine)
+            document.getElementById('todayLine').value = data.todayLine
+
+          restoreTableData('tbmBody', 'tbm', data.tbm)
+          restoreTableData('sandyBody', 'sandy', data.sandy)
+          restoreTableData('hourlyBody', 'hourly', data.hourly)
+          restoreTableData('dailyBody', 'daily', data.daily) // Daily는 타입 파라미터 무시됨(항목고정)
+        } catch (e) {
+          console.error('데이터 로드 오류', e)
         }
       }
 
-      // 데이터 초기화 및 새로고침
+      function restoreTableData(tbodyId, type, rowDataArray) {
+        if (!rowDataArray || rowDataArray.length === 0) return
+
+        const tbody = document.getElementById(tbodyId)
+        // daily가 아닌 동적 테이블은 저장된 갯수만큼 행 생성
+        if (type !== 'daily') {
+          tbody.innerHTML = ''
+          rowDataArray.forEach(() =>
+            tbody.insertAdjacentHTML('beforeend', getRowHtml(type)),
+          )
+        }
+
+        const rows = tbody.querySelectorAll('tr')
+        rowDataArray.forEach((values, i) => {
+          if (rows[i]) {
+            const inputs = rows[i].querySelectorAll('input')
+            inputs.forEach((input, j) => {
+              if (values[j] !== undefined) {
+                if (input.type === 'checkbox') input.checked = values[j]
+                else input.value = values[j]
+              }
+            })
+          }
+        })
+      }
+
+      // 내용 초기화
       function clearData() {
         if (confirm('작성된 모든 내용을 삭제하고 초기화하시겠습니까?')) {
           localStorage.removeItem(STORAGE_KEY)
@@ -491,25 +465,58 @@
         }
       }
 
-      // PDF 생성 및 저장
+      // 9, 10, 11. PDF 출력 제어
       function exportPDF() {
-        const element = document.getElementById('printableArea')
-        // PDF 생성 시 입력창의 테두리를 없애 깔끔하게 출력되도록 임시 클래스 적용 가능
+        const container = document.getElementById('printableArea')
+
+        // 9. 데이터가 없는 카테고리 숨김 처리 검사
+        const sections = [
+          { id: 'tbmSection', tbodyId: 'tbmBody' },
+          { id: 'sandySection', tbodyId: 'sandyBody' },
+          { id: 'hourlySection', tbodyId: 'hourlyBody' },
+        ]
+
+        sections.forEach((sec) => {
+          const tbody = document.getElementById(sec.tbodyId)
+          const inputs = tbody.querySelectorAll('input[type="text"]')
+          const hasData = Array.from(inputs).some(
+            (input) => input.value.trim() !== '',
+          )
+          if (!hasData) {
+            document.getElementById(sec.id).style.display = 'none'
+          }
+        })
+
+        // 10. 상단 및 불필요한 여백/버튼 제거 모드 활성화
+        container.classList.add('pdf-mode')
+
+        // 11. 실물 다이어리 사이즈 (156 x 225 mm)
         const opt = {
-          margin: [10, 5, 10, 5],
+          margin: [5, 5, 5, 5],
           filename: '업무일지.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          image: { type: 'jpeg', quality: 1.0 },
+          html2canvas: { scale: 2, useCORS: true, windowWidth: 800 },
+          jsPDF: { unit: 'mm', format: [156, 225], orientation: 'portrait' },
         }
-        html2pdf().set(opt).from(element).save()
+
+        html2pdf()
+          .set(opt)
+          .from(container)
+          .save()
+          .then(() => {
+            // 출력 후 원래 상태로 복구 (숨김해제)
+            container.classList.remove('pdf-mode')
+            sections.forEach((sec) => {
+              document.getElementById(sec.id).style.display = 'block'
+            })
+          })
       }
 
-      // 페이지 로드 시 데이터 불러오기 실행
-      window.onload = loadData
+      // 페이지 로드 시 테이블 세팅 후 데이터 덮어쓰기
+      window.onload = () => {
+        initTables()
+        loadData()
+      }
     </script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
