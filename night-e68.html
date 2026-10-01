@@ -245,7 +245,7 @@
             <div class="check-item">
               <input type="checkbox" id="chk1_1" />
               <label for="chk1_1"
-                >자동제어 운영현황 사진캡처 (공조기, 냉각탑, 환기팬)</label
+                >자동제어 운영현황 사진캡처 (➡공조기, 냉각탑, 환기팬)</label
               >
             </div>
           </li>
@@ -256,7 +256,7 @@
       <div class="section">
         <h2>2. E7동</h2>
         <div class="sub-section">
-          <h3>1) B1 기계실1 - 북측 출입문</h3>
+          <h3>1) B1 기계실 - 북측 출입문</h3>
           <span class="desc" style="margin-bottom: 10px; margin-left: 10px"
             >※ E6 순찰담당이 E7에 가야하는 이유는 E6 설비 일부가 거기 있기
             때문</span
@@ -275,19 +275,31 @@
               <div class="check-item">
                 <input type="checkbox" id="chk2_2" />
                 <label for="chk2_2"
-                  >(2) CN 난방순환펌프 <strong>기록작성</strong></label
+                  >(2)E6 난방순환펌프 <strong>기록작성</strong></label
                 >
               </div>
               <div class="record-box">
-                <span class="record-label">E6 B1F HWP(난방순환펌프) 입력:</span>
-                <input type="text" value="31.7Hz(5호기) 난방펌프 압력 7.2K" />
+                <span class="record-label" name="result"
+                  >E6 B1F HWP(난방순환펌프) 31.7Hz(5호기) 난방펌프 압력
+                  7.2K</span
+                >
+
+                <label for="rpm">RPM(Hz) : </label>
+                <input type="text" id="rpm" value="31.7Hz" />
+
+                <label for="pump">펌프번호(호기) : </label>
+                <input type="text" id="pump" value="5" />
+
+                <label for="pressure">난방펌프 압력(K) : </label>
+                <input type="text" id="pressure" value=" 7.2" />
               </div>
             </li>
             <li>
               <div class="check-item">
                 <input type="checkbox" id="chk2_3" />
                 <label for="chk2_3"
-                  >(3) 공용냉각탑 냉수순환펌프 <strong>기록작성</strong></label
+                  >(3)E6 공용냉각탑 냉수순환펌프
+                  <strong>기록작성</strong></label
                 >
               </div>
               <div class="record-box">
@@ -406,7 +418,7 @@
               <div class="check-item">
                 <input type="checkbox" id="chk3_9" />
                 <label for="chk3_9"
-                  >(5) 실험실냉각탑 <strong>기록작성</strong></label
+                  >(5)E6 실험실냉각탑 <strong>기록작성</strong></label
                 >
               </div>
               <div class="record-box">
@@ -499,7 +511,7 @@
               <div class="check-item">
                 <input type="checkbox" id="chk3_17" />
                 <label for="chk3_17"
-                  >(3) 냉각수 <strong>기록작성</strong><br />
+                  >(3)E6 냉각수 <strong>기록작성</strong><br />
                   <span class="desc"
                     >위치1) 냉각탑냉각수 - 문을 마주보고 오른쪽 벽면 위치<br />위치2)
                     중형 실험실냉각수 - 문을 마주보고 왼쪽 벽면 위치</span
@@ -591,11 +603,11 @@
               <div class="check-item">
                 <input type="checkbox" id="chk3_24" />
                 <label for="chk3_24"
-                  >9)-(3) 발전기 <strong>기록작성</strong>(주말만)</label
+                  >10) 발전기 <strong>기록작성</strong>(주말만)</label
                 >
               </div>
               <div class="record-box">
-                <span class="record-label">수변전실 발전기 입력:</span>
+                <span class="record-label">E6 발전기</span>
                 <input type="text" value="냉각수(℃) - 35°C" />
                 <input type="text" value="배터리(Vdc) - 26V" />
                 <input type="text" value="경유(L) - 690L" />
