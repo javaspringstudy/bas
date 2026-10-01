@@ -115,7 +115,7 @@
 
       /* 2. 날짜 입력박스 폭 조절 */
       .col-date {
-        width: 130px;
+        width: 110px;
       }
     </style>
   </head>
@@ -125,7 +125,7 @@
       <div
         class="d-flex justify-content-around align-items-center mb-3 border-bottom pb-2 pt-2"
       >
-        <a href="#" class="btn btn-sm btn-outline-secondary no-print"
+        <a href="/bas/" class="btn btn-sm btn-outline-secondary no-print"
           >🏠 Home</a
         >
         <h4 class="fw-bold mb-0 text-end">계획하라! 실천하라! 지속하라!</h4>
@@ -144,7 +144,7 @@
             type="text"
             class="form-control ls-save"
             id="todayLine"
-            value="Day-"
+            value="Day"
           />
         </div>
       </div>
@@ -333,20 +333,20 @@
       function getRowHtml(type) {
         if (type === 'tbm') {
           return `<tr>
-                        <td><input type="text" class="form-control" placeholder="항목 입력"></td>
+                        <td><input type="text" class="form-control" ></td>
                         <td><input type="checkbox" class="ios-switch"></td>
                         <td><input type="checkbox" class="ios-switch"></td>
                     </tr>`
         } else if (type === 'sandy') {
           return `<tr>
-                        <td><input type="text" class="form-control" placeholder="요청위치"></td>
-                        <td><input type="text" class="form-control" placeholder="요청내용"></td>
+                        <td><input type="text" class="form-control" ></td>
+                        <td><input type="text" class="form-control" ></td>
                     </tr>`
         } else if (type === 'hourly') {
           return `<tr>
-                        <td><input type="text" class="form-control" placeholder="00:00~00:00"></td>
-                        <td class="col-type"><input type="text" class="form-control text-center" maxlength="2" placeholder="분류"></td>
-                        <td><input type="text" class="form-control" placeholder="업무내용/참석자"></td>
+                        <td><input type="text" class="form-control" ></td>
+                        <td class="col-type"><input type="text" class="form-control text-center" maxlength="2" ></td>
+                        <td><input type="text" class="form-control" ></td>
                     </tr>`
         }
         return ''
