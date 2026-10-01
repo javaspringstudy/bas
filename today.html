@@ -121,16 +121,15 @@
   </head>
   <body>
     <div class="journal-container mb-spacer" id="printableArea">
-      <!-- 8. Home 링크 추가 -->
+      <!-- 8. Home 링크는 좌측, 타이틀은 우측 배치 -->
       <div
-        class="d-flex justify-content-between align-items-center mb-2 no-print"
+        class="d-flex justify-content-around align-items-center mb-3 border-bottom pb-2 pt-2"
       >
-        <a href="#" class="btn btn-sm btn-outline-secondary">🏠 Home</a>
+        <a href="#" class="btn btn-sm btn-outline-secondary no-print"
+          >🏠 Home</a
+        >
+        <h4 class="fw-bold mb-0 text-end">계획하라! 실천하라! 지속하라!</h4>
       </div>
-
-      <h4 class="text-center fw-bold mb-3 border-bottom pb-2">
-        계획하라! 실천하라! 지속하라!
-      </h4>
 
       <!-- 기본 정보 -->
       <div class="d-flex gap-2 mb-3 align-items-end">
@@ -425,7 +424,7 @@
           restoreTableData('tbmBody', 'tbm', data.tbm)
           restoreTableData('sandyBody', 'sandy', data.sandy)
           restoreTableData('hourlyBody', 'hourly', data.hourly)
-          restoreTableData('dailyBody', 'daily', data.daily) // Daily는 타입 파라미터 무시됨(항목고정)
+          restoreTableData('dailyBody', 'daily', data.daily)
         } catch (e) {
           console.error('데이터 로드 오류', e)
         }
@@ -435,7 +434,6 @@
         if (!rowDataArray || rowDataArray.length === 0) return
 
         const tbody = document.getElementById(tbodyId)
-        // daily가 아닌 동적 테이블은 저장된 갯수만큼 행 생성
         if (type !== 'daily') {
           tbody.innerHTML = ''
           rowDataArray.forEach(() =>
@@ -469,7 +467,7 @@
       function exportPDF() {
         const container = document.getElementById('printableArea')
 
-        // 9. 데이터가 없는 카테고리 숨김 처리 검사
+        // 데이터가 없는 카테고리 숨김 처리
         const sections = [
           { id: 'tbmSection', tbodyId: 'tbmBody' },
           { id: 'sandySection', tbodyId: 'sandyBody' },
@@ -487,10 +485,10 @@
           }
         })
 
-        // 10. 상단 및 불필요한 여백/버튼 제거 모드 활성화
+        // PDF 모드 활성화 (여백 제거)
         container.classList.add('pdf-mode')
 
-        // 11. 실물 다이어리 사이즈 (156 x 225 mm)
+        // 실물 다이어리 사이즈 (156 x 225 mm)
         const opt = {
           margin: [5, 5, 5, 5],
           filename: '업무일지.pdf',
@@ -504,7 +502,7 @@
           .from(container)
           .save()
           .then(() => {
-            // 출력 후 원래 상태로 복구 (숨김해제)
+            // 출력 후 복구
             container.classList.remove('pdf-mode')
             sections.forEach((sec) => {
               document.getElementById(sec.id).style.display = 'block'
@@ -512,7 +510,6 @@
           })
       }
 
-      // 페이지 로드 시 테이블 세팅 후 데이터 덮어쓰기
       window.onload = () => {
         initTables()
         loadData()
