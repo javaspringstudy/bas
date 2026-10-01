@@ -92,17 +92,13 @@
         margin-bottom: 70px;
       }
 
-      /* PDF 인쇄 시 왼쪽 상단 (0,0) 고정 */
+      /* PDF 인쇄 시 캡처 오류 방지를 위해 absolute 제거, 폭과 여백만 고정 */
       .pdf-mode {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 5px !important; /* 요소들이 테두리에 너무 붙지 않게 약간의 여백 */
         width: 800px !important;
-        max-width: none !important;
+        max-width: 800px !important;
         background-color: white !important;
-        z-index: 9999;
       }
       .pdf-mode .no-print {
         display: none !important;
@@ -463,6 +459,9 @@
       function exportPDF() {
         const container = document.getElementById('printableArea')
 
+        // 스크롤을 최상단 좌측으로 강제 이동시켜 (0,0) 위치에서 캡처가 시작되도록 보장
+        window.scrollTo(0, 0)
+
         // 매일 점검 목록 및 월간 특별일정 숨김 처리
         const bottomSchedules = document.getElementById('bottomSchedules')
         if (bottomSchedules) bottomSchedules.style.display = 'none'
@@ -485,17 +484,17 @@
           }
         })
 
-        // PDF 모드 적용: (0,0) 절대 좌표 고정 및 여백 제거
+        // PDF 모드 적용 (지정된 폭 안에서 정상적으로 캡처되도록 함)
         container.classList.add('pdf-mode')
 
         const opt = {
-          margin: 0,
+          margin: [5, 5, 5, 5], // 상하좌우 약간의 여백
           filename: '업무일지.pdf',
           image: { type: 'jpeg', quality: 1.0 },
           html2canvas: {
             scale: 2,
             useCORS: true,
-            windowWidth: 800,
+            windowWidth: 800, // 모바일 화면이 아닌 800px 기준으로 캡처 유도
             scrollY: 0,
             scrollX: 0,
           },
