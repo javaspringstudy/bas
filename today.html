@@ -92,21 +92,19 @@
         margin-bottom: 70px;
       }
 
-      /* PDF 인쇄 시 캡처 오류 방지를 위해 absolute 제거, 폭과 여백만 고정 */
+      /* PDF 인쇄용 CSS (백지현상 방지를 위해 최소한의 설정만 유지) */
       .pdf-mode {
         margin: 0 !important;
-        padding: 5px !important; /* 요소들이 테두리에 너무 붙지 않게 약간의 여백 */
-        width: 800px !important;
-        max-width: 800px !important;
+        padding: 0 5px !important;
         background-color: white !important;
       }
       .pdf-mode .no-print {
         display: none !important;
       }
       .pdf-mode .form-control {
-        border: none;
-        background: transparent;
-        padding: 0;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
         text-align: center;
       }
 
@@ -459,14 +457,15 @@
       function exportPDF() {
         const container = document.getElementById('printableArea')
 
-        // 스크롤을 최상단 좌측으로 강제 이동시켜 (0,0) 위치에서 캡처가 시작되도록 보장
+        // 스크롤을 맨 위(0,0)로 올려서 캡처 밀림 현상 방지
         window.scrollTo(0, 0)
+        container.classList.add('pdf-mode')
 
-        // 매일 점검 목록 및 월간 특별일정 숨김 처리
+        // 하단 스케줄(매일점검/월간일정) 숨김
         const bottomSchedules = document.getElementById('bottomSchedules')
         if (bottomSchedules) bottomSchedules.style.display = 'none'
 
-        // 데이터 없는 카테고리 숨김
+        // 내용이 비어있는 섹션 숨김 처리
         const sections = [
           { id: 'tbmSection', tbodyId: 'tbmBody' },
           { id: 'sandySection', tbodyId: 'sandyBody' },
@@ -484,35 +483,35 @@
           }
         })
 
-        // PDF 모드 적용 (지정된 폭 안에서 정상적으로 캡처되도록 함)
-        container.classList.add('pdf-mode')
+        // setTimeout으로 0.3초(300ms) 대기 후 캡처 시작 (DOM 업데이트 반영 완료 대기)
+        setTimeout(() => {
+          const opt = {
+            margin: 0, // 완전한 0,0 기준점 출력
+            filename: '업무일지.pdf',
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              windowWidth: 800, // 모바일 화면이어도 800px 기준으로 렌더링되도록 옵션에만 부여
+              scrollY: 0,
+              scrollX: 0,
+            },
+            jsPDF: { unit: 'mm', format: [156, 225], orientation: 'portrait' },
+          }
 
-        const opt = {
-          margin: [5, 5, 5, 5], // 상하좌우 약간의 여백
-          filename: '업무일지.pdf',
-          image: { type: 'jpeg', quality: 1.0 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            windowWidth: 800, // 모바일 화면이 아닌 800px 기준으로 캡처 유도
-            scrollY: 0,
-            scrollX: 0,
-          },
-          jsPDF: { unit: 'mm', format: [156, 225], orientation: 'portrait' },
-        }
-
-        html2pdf()
-          .set(opt)
-          .from(container)
-          .save()
-          .then(() => {
-            // 원상 복구
-            container.classList.remove('pdf-mode')
-            sections.forEach((sec) => {
-              document.getElementById(sec.id).style.display = 'block'
+          html2pdf()
+            .set(opt)
+            .from(container)
+            .save()
+            .then(() => {
+              // PDF 생성 완료 후 원래 상태(보이기)로 복구
+              container.classList.remove('pdf-mode')
+              sections.forEach((sec) => {
+                document.getElementById(sec.id).style.display = 'block'
+              })
+              if (bottomSchedules) bottomSchedules.style.display = '' // 빈 문자열로 복구하면 원래 css 속성(flex) 복귀됨
             })
-            if (bottomSchedules) bottomSchedules.style.display = ''
-          })
+        }, 300)
       }
 
       window.onload = () => {
