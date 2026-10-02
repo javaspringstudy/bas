@@ -82,6 +82,15 @@
         transform: translateX(18px);
       }
 
+      /* 일반 체크박스 (내업무 체크용) 크기 확대 */
+      .my-work-chk {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        margin: 0 auto;
+        display: block;
+      }
+
       .fixed-bottom-bar {
         background-color: white;
         border-top: 1px solid #dee2e6;
@@ -105,24 +114,113 @@
         border: none !important;
         background: transparent !important;
         padding: 0 !important;
-        text-align: center; /* 기본적으로 텍스트 중앙 정렬 */
+        text-align: center;
       }
 
       /* PDF 출력 시 TBM 항목 내용은 왼쪽 정렬 */
       .pdf-mode #tbmBody td:first-child .form-control {
         text-align: left !important;
-        padding-left: 5px !important; /* 너무 테두리에 붙지 않도록 여백 추가 */
+        padding-left: 5px !important;
+      }
+
+      /* 메모장 PDF 출력 스타일 */
+      .pdf-mode textarea.form-control {
+        text-align: left !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 10px !important;
+        resize: none;
+        overflow: hidden;
       }
 
       /* 분류 컬럼 폭 (2글자용) */
       .col-type {
-        width: 50px;
+        width: 45px;
         text-align: center;
       }
 
       /* 날짜 입력박스 폭 조절 */
       .col-date {
         width: 110px;
+      }
+
+      /* 스마트폰 환경(화면폭 767px 이하)에서 '시간별 업무내용' 2줄 분리 UI 적용 */
+      @media (max-width: 767px) {
+        #hourlySection thead {
+          display: none;
+        }
+        #hourlySection table,
+        #hourlySection tbody,
+        #hourlySection tr,
+        #hourlySection td {
+          display: block;
+          width: 100%;
+        }
+        #hourlySection tr {
+          display: flex;
+          flex-wrap: wrap;
+          border: 1px solid #ced4da;
+          border-radius: 6px;
+          padding: 5px;
+          margin-bottom: 10px;
+          background-color: #fcfcfc;
+        }
+        #hourlySection td {
+          padding: 2px;
+          border: none;
+          display: flex;
+          align-items: center;
+        }
+
+        /* 
+          1번줄 항목들 강제 1줄 배치: 
+          flex-basis를 0%로 설정하고 min-width를 0으로 주어 input 100% 속성이 부모를 밀어내지 못하게 함 
+        */
+        #hourlySection td:nth-child(1) {
+          order: 1;
+          flex: 1 1 0%;
+          min-width: 0;
+        } /* 시간 (남는공간 다 차지) */
+        #hourlySection td:nth-child(2) {
+          order: 2;
+          flex: 0 0 50px;
+          min-width: 0;
+        } /* 분류 (고정폭) */
+        #hourlySection td:nth-child(3) {
+          order: 3;
+          flex: 0 0 65px;
+          justify-content: center;
+        } /* 내업무 */
+        #hourlySection td:nth-child(5) {
+          order: 4;
+          flex: 0 0 60px;
+          justify-content: flex-end;
+        } /* 순서 */
+
+        /* 모바일에서 '내업무' 라벨 표시 */
+        #hourlySection td:nth-child(3)::before {
+          content: '내업무';
+          font-size: 0.75rem;
+          margin-right: 4px;
+          font-weight: bold;
+          color: #495057;
+          white-space: nowrap;
+        }
+
+        /* 2번줄 업무내용 100% 너비 차지로 단독 줄 형성 */
+        #hourlySection td:nth-child(4) {
+          order: 5;
+          flex: 0 0 100%;
+          margin-top: 4px;
+          min-width: 0;
+        }
+
+        /* 모바일에서 입력창이 넘치지 않게 제어 */
+        #hourlySection .form-control {
+          padding: 0.15rem 0.25rem;
+          font-size: 0.8rem;
+          width: 100%;
+          min-width: 0; /* 이 속성이 필수적임 */
+        }
       }
     </style>
   </head>
@@ -160,7 +258,6 @@
       <div id="tbmSection">
         <div class="section-header">
           <span>Team Box Meeting - 업무일정</span>
-          <!-- 항목 추가/삭제 버튼 -->
           <div class="no-print">
             <button
               class="btn btn-sm btn-secondary py-0 px-2"
@@ -245,13 +342,16 @@
             </button>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table table-bordered text-center mb-0">
+        <!-- 테이블 기본 레이아웃 (PC & PDF 출력시 1줄 표 형태로 렌더링됨) -->
+        <div class="table-responsive" style="overflow: visible">
+          <table class="table table-bordered text-center align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th style="width: 25%">시간</th>
-                <th class="col-type">분류</th>
+                <th style="width: 115px">시간</th>
+                <th style="width: 70px">분류</th>
+                <th style="width: 60px">내업무</th>
                 <th>업무내용 / 참석자</th>
+                <th class="no-print" style="width: 65px">순서</th>
               </tr>
             </thead>
             <tbody id="hourlyBody">
@@ -289,7 +389,7 @@
             class="p-2 border rounded"
             style="font-size: 0.8rem; background-color: #fcfcfc"
           >
-            <strong>매월초 - 공조기 교번작업</strong><br /><br />
+            <strong>매월초 - 교번작업</strong><br /><br />
             <strong>1, 4, 7, 10월</strong>
             <ul class="mb-2">
               <li>지열EHP 실외기 스트레이너 청소</li>
@@ -301,6 +401,19 @@
             </ul>
           </div>
         </div>
+      </div>
+
+      <!-- 메모장 (맨 아래 추가) -->
+      <div id="memoSection" class="mt-2">
+        <div class="section-header" style="margin-top: 0">
+          <span>오늘의 메모</span>
+        </div>
+        <textarea
+          id="memoInput"
+          class="form-control"
+          rows="4"
+          placeholder="오늘 있었던 주요 사항이나 특이사항을 자유롭게 기록하세요."
+        ></textarea>
       </div>
     </div>
 
@@ -320,7 +433,7 @@
     </div>
 
     <script>
-      const STORAGE_KEY = 'workJournalData_v2'
+      const STORAGE_KEY = 'workJournalData_v3'
 
       const dailyItems = [
         '1. 흡착탑 정압설정(오전/오후)',
@@ -346,10 +459,18 @@
                         <td><input type="text" class="form-control" ></td>
                     </tr>`
         } else if (type === 'hourly') {
+          // 스마트폰 모드에서 머리글이 안보여도 알 수 있도록 placeholder 지정
           return `<tr>
-                        <td><input type="text" class="form-control" ></td>
-                        <td class="col-type"><input type="text" class="form-control text-center" maxlength="2" ></td>
-                        <td><input type="text" class="form-control" ></td>
+                        <td><input type="text" class="form-control text-center" placeholder="00:00~00:00"></td>
+                        <td><input type="text" class="form-control text-center" maxlength="4" placeholder="분류"></td>
+                        <td><input type="checkbox" class="form-check-input my-work-chk"></td>
+                        <td><input type="text" class="form-control" placeholder="업무내용 / 참석자"></td>
+                        <td class="no-print">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="moveRow(this, -1)">▲</button>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="moveRow(this, 1)">▼</button>
+                            </div>
+                        </td>
                     </tr>`
         }
         return ''
@@ -364,6 +485,18 @@
         const tbody = document.getElementById(tbodyId)
         if (tbody.children.length > 1) {
           tbody.removeChild(tbody.lastElementChild)
+        }
+      }
+
+      // 행 위아래 순서 변경 기능
+      function moveRow(btn, direction) {
+        const row = btn.closest('tr')
+        if (direction === -1 && row.previousElementSibling) {
+          // 위로 이동
+          row.parentNode.insertBefore(row, row.previousElementSibling)
+        } else if (direction === 1 && row.nextElementSibling) {
+          // 아래로 이동
+          row.parentNode.insertBefore(row.nextElementSibling, row)
         }
       }
 
@@ -387,6 +520,7 @@
         const data = {
           date: document.getElementById('dateInput').value,
           todayLine: document.getElementById('todayLine').value,
+          memo: document.getElementById('memoInput').value,
           tbm: extractTableData('tbmBody'),
           sandy: extractTableData('sandyBody'),
           hourly: extractTableData('hourlyBody'),
@@ -418,6 +552,7 @@
           if (data.date) document.getElementById('dateInput').value = data.date
           if (data.todayLine)
             document.getElementById('todayLine').value = data.todayLine
+          if (data.memo) document.getElementById('memoInput').value = data.memo
 
           restoreTableData('tbmBody', 'tbm', data.tbm)
           restoreTableData('sandyBody', 'sandy', data.sandy)
@@ -471,6 +606,16 @@
         const bottomSchedules = document.getElementById('bottomSchedules')
         if (bottomSchedules) bottomSchedules.style.display = 'none'
 
+        // 메모장이 비어있으면 PDF 출력에서 제외
+        const memoSection = document.getElementById('memoSection')
+        const memoInput = document.getElementById('memoInput')
+        if (memoInput.value.trim() === '') {
+          memoSection.style.display = 'none'
+        } else {
+          memoInput.style.height = 'auto'
+          memoInput.style.height = memoInput.scrollHeight + 'px'
+        }
+
         // 내용이 비어있는 섹션 숨김 처리
         const sections = [
           { id: 'tbmSection', tbodyId: 'tbmBody' },
@@ -498,11 +643,10 @@
             html2canvas: {
               scale: 2,
               useCORS: true,
-              windowWidth: 800,
+              windowWidth: 800, // html2canvas에 PC사이즈 해상도를 전달하여 PDF는 무조건 표 형태로 렌더링되도록 함
               scrollY: 0,
               scrollX: 0,
             },
-            // 출력 사이즈를 a4로 변경
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           }
 
@@ -513,10 +657,17 @@
             .then(() => {
               // PDF 생성 완료 후 원래 상태로 복구
               container.classList.remove('pdf-mode')
+
               sections.forEach((sec) => {
                 document.getElementById(sec.id).style.display = 'block'
               })
+
               if (bottomSchedules) bottomSchedules.style.display = ''
+
+              if (memoSection) {
+                memoSection.style.display = 'block'
+                memoInput.style.height = '' // 높이 초기화
+              }
             })
         }, 300)
       }
